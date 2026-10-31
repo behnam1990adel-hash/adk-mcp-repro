@@ -11,7 +11,7 @@ jobs:
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
       contains(github.event.comment.body, '@gemini-cli')
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 18
     permissions:
       contents: read
       pull-requests: read
