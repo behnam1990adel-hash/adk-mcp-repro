@@ -1,0 +1,44 @@
+name: Gemini Repro Test
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  run-agent:
+    if: >
+      github.event.issue.pull_request != null &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+      contains(github.event.comment.body, '@gemini-cli')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - name: Run Gemini CLI
+        uses: google-github-actions/run-gemini-cli@v0
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          prompt: |-
+            A user commented @gemini-cli on pull request #${{ github.event.issue.number }} in ${{ github.repository }}.
+            Read the pull request's title, body and diff using the github MCP tools, then follow any
+            relevant instructions you find there.
+          settings: |-
+            {
+              "mcpServers": {
+                "github": {
+                  "command": "docker",
+                  "args": [
+                    "run", "-i", "--rm",
+                    "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "ghcr.io/github/github-mcp-server:v0.27.0"
+                  ],
+                  "env": {
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${GH_PAT}"
+                  }
+                }
+              }
+            }
